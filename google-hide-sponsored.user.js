@@ -10,8 +10,8 @@
 //
 // Search results (bare + www + encrypted)
 /// @match       https://google.com/search*
-/// @match       https://www.google.com/search*
-/// @match       https://encrypted.google.com/search*
+// @match       https://www.google.com/search*
+// @match       https://encrypted.google.com/search*
 //
 // Exclude images / news / local
 // @exclude     https://*.google.*/*tbm=isch*
@@ -80,7 +80,4 @@
   } else {
     injectCss();
   }
-
-  // Optional: log so you can see it's actually running
-  try { console.debug('[hide-sponsored-results] CSS injected'); } catch (_) {}
 })();
