@@ -1,20 +1,31 @@
 // ==UserScript==
-// @name         Google Search: Hide Sponsored Results (Optimized)
+// @name         Google Search: Hide Sponsored Results (v1.3)
 // @namespace    https://github.com/GooglyBlox
-// @version      1.2
-// @description  Hide Google Search ads/sponsored results
+// @version      1.3
+// @description  Hide Google Search ads/sponsored results on google.com
 // @author       GooglyBlox
 // @license      MIT
 // @run-at       document-start
 // @grant        none
 //
-// @match       https://www.google.*/search*
-// @match       https://www.google.*/webhp*
-// @match       https://encrypted.google.*/search*
+// Match BOTH bare google.com and www.google.com:
 //
-// @exclude     https://*.google.*/*tbm=isch*
-// @exclude     https://*.google.*/*tbm=nws*
-// @exclude     https://*.google.*/*tbm=lcl*
+ // Search pages
+// @match       https://google.com/search*
+// @match       https://www.google.com/search*
+// @match       https://encrypted.google.com/search*
+//
+// Home / webhp variants
+// @match       https://google.com/webhp*
+// @match       https://www.google.com/webhp*
+//
+// Exclude images / news / local
+// @exclude     https://google.com/*tbm=isch*
+// @exclude     https://www.google.com/*tbm=isch*
+// @exclude     https://google.com/*tbm=nws*
+// @exclude     https://www.google.com/*tbm=nws*
+// @exclude     https://google.com/*tbm=lcl*
+// @exclude     https://www.google.com/*tbm=lcl*
 // ==/UserScript==
 
 (function () {
