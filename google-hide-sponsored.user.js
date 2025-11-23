@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Search: Hide Sponsored Results (Minimal CSS)
 // @namespace    https://github.com/GooglyBlox
-// @version      2.2
+// @version      2.3
 // @description  Hide Google Search ads/sponsored results (Gemini etc.) using CSS only
 // @author       GooglyBlox
 // @license      MIT
@@ -18,8 +18,8 @@
 // @match       https://www.google.com/webhp*
 //
 // Auto-update from GitHub raw (your repo)
-// @downloadURL  https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
-// @updateURL    https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
+/// @downloadURL  https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
+/// @updateURL    https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
 // ==/UserScript==
 
 (function () {
@@ -37,7 +37,8 @@
     style.textContent = `
       /* Classic top and bottom ad blocks */
       #tads,
-      #tadsb {
+      #tadsb,
+      #taw {
         display: none !important;
       }
 
@@ -46,18 +47,6 @@
       .commercial-unit-desktop-rhs,
       .pla-unit,
       .cu-container {
-        display: none !important;
-      }
-
-      /* Elements explicitly marked as ads.
-         We intentionally *do not* touch generic "Sponsored" containers,
-         because Google sometimes reuses those around non-ad UI. */
-      [data-text-ad],
-      [data-text-ad="1"],
-      [data-ad],
-      [data-ad-type],
-      [aria-label="Ads"],
-      [role="region"][aria-label^="Ads"] {
         display: none !important;
       }
     `;
