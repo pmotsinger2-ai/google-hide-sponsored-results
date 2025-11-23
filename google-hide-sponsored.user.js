@@ -1,7 +1,6 @@
 // ==UserScript==
 // @name         Google Search: Hide Sponsored Results (Safe CSS Version)
 // @namespace    https://github.com/GooglyBlox
-// @version      2.0
 // @version      2.2
 // @description  Hide Google Search ads/sponsored results without breaking the page
 // @author       GooglyBlox
@@ -24,17 +23,14 @@
   const STYLE_ATTR = 'data-hide-google-ads';
 
   function injectCss() {
-    if (document.documentElement.querySelector('style[data-hide-google-ads]')) return;
     if (document.documentElement.querySelector(`style[${STYLE_ATTR}]`)) return;
 
     const style = document.createElement('style');
-    style.setAttribute('data-hide-google-ads', '1');
     style.setAttribute(STYLE_ATTR, '1');
 
     style.textContent = `
       /* Classic top and bottom ad blocks */
       #tads,
-      #tadsb {
       #tadsb,
       #taw {
         display: none !important;
@@ -44,7 +40,6 @@
       .commercial-unit-desktop-top,
       .commercial-unit-desktop-rhs,
       .pla-unit,
-      .cu-container {
       .cu-container,
       .ads-ad,
       .Krnil,
