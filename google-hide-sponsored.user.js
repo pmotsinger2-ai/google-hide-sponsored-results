@@ -18,8 +18,8 @@
 // @match       https://www.google.com/webhp*
 //
 // Auto-update from GitHub raw (your repo)
-/// @downloadURL  https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
-/// @updateURL    https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
+// @downloadURL  https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
+// @updateURL    https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
 // ==/UserScript==
 
 (function () {
