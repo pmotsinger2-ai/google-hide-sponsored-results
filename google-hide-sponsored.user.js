@@ -9,9 +9,9 @@
 // @grant        none
 //
 // Search results (bare + www + encrypted)
- // @match       https://google.com/search*
- // @match       https://www.google.com/search*
- // @match       https://encrypted.google.com/search*
+// @match       https://google.com/search*
+// @match       https://www.google.com/search*
+// @match       https://encrypted.google.com/search*
 //
 // Exclude images / news / local
 // @exclude     https://*.google.*/*tbm=isch*
