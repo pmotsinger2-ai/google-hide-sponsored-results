@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Search: Hide Sponsored Results (Minimal CSS)
 // @namespace    https://github.com/GooglyBlox
-// @version      2.1
+// @version      2.2
 // @description  Hide Google Search ads/sponsored results (Gemini etc.) using CSS only
 // @author       GooglyBlox
 // @license      MIT
@@ -16,8 +16,6 @@
 // Optional: also run on /webhp (results page variant)
 // @match       https://google.com/webhp*
 // @match       https://www.google.com/webhp*
-//
-// (We skip @exclude completely to avoid pattern headaches)
 //
 // Auto-update from GitHub raw (your repo)
 // @downloadURL  https://raw.githubusercontent.com/pmotsinger2-ai/google-hide-sponsored-results/main/google-hide-sponsored.user.js
@@ -51,15 +49,15 @@
         display: none !important;
       }
 
-      /* Elements explicitly marked as ads / sponsored.
-         These are the same selectors from your original working script.
-         They are VERY unlikely to hit the search box itself. */
+      /* Elements explicitly marked as ads.
+         We intentionally *do not* touch generic "Sponsored" containers,
+         because Google sometimes reuses those around non-ad UI. */
       [data-text-ad],
       [data-text-ad="1"],
       [data-ad],
       [data-ad-type],
       [aria-label="Ads"],
-      [role="region"][aria-label^="Ads"],
+      [role="region"][aria-label^="Ads"] {
         display: none !important;
       }
     `;
