@@ -59,9 +59,7 @@
       [data-ad],
       [data-ad-type],
       [aria-label="Ads"],
-      [aria-label="Sponsored"],
       [role="region"][aria-label^="Ads"],
-      [role="region"][aria-label^="Sponsored"] {
         display: none !important;
       }
     `;
