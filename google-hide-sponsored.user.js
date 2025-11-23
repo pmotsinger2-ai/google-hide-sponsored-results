@@ -1,16 +1,14 @@
 // ==UserScript==
-// @name         Google Search: Hide Sponsored Results (v1.3)
+// @name         Google Search: Hide Sponsored Results (v1.4)
 // @namespace    https://github.com/GooglyBlox
-// @version      1.3
-// @description  Hide Google Search ads/sponsored results on google.com
+// @version      1.4
+// @description  Hide Google Search ads / sponsored results on google.com
 // @author       GooglyBlox
 // @license      MIT
 // @run-at       document-start
 // @grant        none
 //
-// Match BOTH bare google.com and www.google.com:
-//
- // Search pages
+// Search pages (bare + www)
 // @match       https://google.com/search*
 // @match       https://www.google.com/search*
 // @match       https://encrypted.google.com/search*
@@ -31,79 +29,103 @@
 (function () {
   "use strict";
 
-  // Heuristics for ad markers (attributes / classes)
-  const AD_MARKER_SELECTORS = [
-    '[data-text-ad="1"]',
-    '[data-ad]',
-    'span.U3A9Ac.qV8iec'   // existing known badge class
-  ].join(',');
-
-  // Likely container blocks around results/ads
-  const AD_CONTAINER_SELECTORS = [
-    '#tads',     // top ads block (common)
-    '#tadsb',    // bottom ads block (common)
-    '.uEierd',
-    '.v7W49e',
-    '.mnr-c',
-    '.xpd',
-    '.g',
-    '.kp-blk',
-    '.Yu2Dnd',
-    '.PLy5Wb'
-  ].join(',');
-
-  const SPONSORED_WORDS = new Set(["sponsored", "ad", "ads"]);
-  const SPONSORED_LABEL_MAX_LEN = 20;
+  const SPONSORED_LABELS = new Set([
+    "sponsored",
+    "sponsored results",
+    "sponsored results:",
+    "sponsored products",
+    "sponsored ads"
+  ]);
 
   function getSearchRoot(node) {
     if (!node) return null;
     if (node.querySelector) {
-      return node.querySelector('#search') || node;
+      return node.querySelector("#search") || node;
     }
     return node;
   }
 
-  function isSponsoredLabel(el) {
-    if (!el || !el.textContent) return false;
-    const text = el.textContent.trim().toLowerCase();
-    if (!text || text.length > SPONSORED_LABEL_MAX_LEN) return false;
-    return SPONSORED_WORDS.has(text);
+  function normalize(text) {
+    return (text || "").trim().toLowerCase().replace(/\s+/g, " ");
   }
 
-  function removeContainerFor(element) {
-    if (!element || !element.parentElement) return;
-    const container = element.closest(AD_CONTAINER_SELECTORS);
-    const target = container || element;
-    if (target && target.parentElement) {
-      target.remove();
+  function isSponsoredHeading(el) {
+    if (!el) return false;
+
+    const text = normalize(el.textContent);
+    if (SPONSORED_LABELS.has(text)) return true;
+
+    const aria = normalize(el.getAttribute?.("aria-label"));
+    if (aria && SPONSORED_LABELS.has(aria)) return true;
+
+    return false;
+  }
+
+  function looksLikeHideButton(el) {
+    if (!el) return false;
+    const text = normalize(el.textContent);
+    return text.includes("hide sponsored");
+  }
+
+  function containsAdLinks(container) {
+    if (!container || !container.querySelector) return false;
+    return !!container.querySelector(
+      'a[href*="googleadservices.com"], a[href*="adurl="], a[href*="aclk"]'
+    );
+  }
+
+  function findAdContainer(start) {
+    let node = start;
+    for (let depth = 0; depth < 10 && node && node !== document.body; depth++) {
+      if (containsAdLinks(node)) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function removeNode(node) {
+    if (node && node.parentElement) {
+      node.parentElement.removeChild(node);
     }
   }
 
-  function clean(root) {
+  function removeSponsoredBlocks(root) {
     const searchRoot = getSearchRoot(root || document);
     if (!searchRoot || !searchRoot.querySelectorAll) return;
 
-    // 1) Attribute/class-based ad markers
-    searchRoot.querySelectorAll(AD_MARKER_SELECTORS)
-      .forEach(removeContainerFor);
-
-    // 2) Known ad/result containers that contain ad markers
-    searchRoot.querySelectorAll(AD_CONTAINER_SELECTORS)
-      .forEach(container => {
-        if (container.querySelector(AD_MARKER_SELECTORS)) {
-          container.remove();
-        }
+    // 1) Anything already labeled with a sponsored aria-label or role region
+    searchRoot
+      .querySelectorAll(
+        'div[aria-label*="Sponsored"], section[aria-label*="Sponsored"], div[aria-label*="Ads"], section[aria-label*="Ads"]'
+      )
+      .forEach(block => {
+        const container = findAdContainer(block) || block;
+        removeNode(container);
       });
 
-    // 3) Small "Sponsored"/"Ad" labels
-    //    Restrict to spans and labeled divs to avoid scanning every div.
-    searchRoot.querySelectorAll('span, div[role], div[aria-label]')
+    // 2) Headings / labels saying "Sponsored results"
+    searchRoot
+      .querySelectorAll("h2, h3, div, span")
       .forEach(el => {
-        if (isSponsoredLabel(el)) {
-          removeContainerFor(el);
-        }
+        if (!isSponsoredHeading(el)) return;
+        const container = findAdContainer(el) || el.parentElement || el;
+        removeNode(container);
+      });
+
+    // 3) Buttons like "Hide sponsored results"
+    searchRoot
+      .querySelectorAll("button")
+      .forEach(btn => {
+        if (!looksLikeHideButton(btn)) return;
+        const container = findAdContainer(btn) || btn.parentElement || btn;
+        removeNode(container);
       });
   }
+
+  // Initial pass
+  removeSponsoredBlocks(document);
 
   function onReady(fn) {
     if (document.readyState === "loading") {
@@ -112,9 +134,6 @@
       fn();
     }
   }
-
-  // Initial pass (whatever exists at document-start)
-  clean(document);
 
   onReady(() => {
     const target = document.body || document.documentElement;
@@ -133,27 +152,23 @@
       for (const mutation of mutations) {
         mutation.addedNodes.forEach(node => {
           if (node.nodeType !== Node.ELEMENT_NODE) return;
-          const root = (node.closest && node.closest('#search')) || node;
+          const root =
+            (node.closest && node.closest("#search")) || node;
           if (handledRoots.has(root)) return;
           handledRoots.add(root);
-          clean(root);
+          removeSponsoredBlocks(root);
         });
       }
     }
 
-    function scheduleProcessing(mutations) {
+    function schedule(mutations) {
       pendingMutations.push(...mutations);
       if (scheduled) return;
       scheduled = true;
-
-      if (typeof window.requestIdleCallback === "function") {
-        requestIdleCallback(processMutations, { timeout: 200 });
-      } else {
-        setTimeout(processMutations, 50);
-      }
+      setTimeout(processMutations, 50);
     }
 
-    const observer = new MutationObserver(scheduleProcessing);
+    const observer = new MutationObserver(schedule);
 
     observer.observe(target, {
       childList: true,
