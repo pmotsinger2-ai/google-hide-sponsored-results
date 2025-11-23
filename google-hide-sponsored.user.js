@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Google Search: Hide Sponsored Results (Safe CSS Version)
+// @name         Google Search: Hide Sponsored Results (Hybrid Safe Version)
 // @namespace    https://github.com/GooglyBlox
-// @version      2.5
+// @version      3.0
 // @description  Hide Google Search ads/sponsored results without breaking the page
 // @author       GooglyBlox
 // @license      MIT
@@ -9,9 +9,9 @@
 // @grant        none
 //
 // Search results (bare + www + encrypted)
-/// @match       https://google.com/search*
-// @match       https://www.google.com/search*
-// @match       https://encrypted.google.com/search*
+ // @match       https://google.com/search*
+ // @match       https://www.google.com/search*
+ // @match       https://encrypted.google.com/search*
 //
 // Exclude images / news / local
 // @exclude     https://*.google.*/*tbm=isch*
@@ -28,6 +28,7 @@
 
   const STYLE_ATTR = 'data-hide-google-ads';
 
+  // ---------- CSS: kill classic ad blocks & labeled ad containers ----------
   function injectCss() {
     if (document.documentElement.querySelector(`style[${STYLE_ATTR}]`)) return;
 
@@ -75,9 +76,78 @@
     document.documentElement.appendChild(style);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectCss, { once: true });
-  } else {
-    injectCss();
+  // ---------- JS: surgically remove "Sponsored result" blocks ----------
+  function norm(text) {
+    return (text || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
   }
+
+  function isSponsoredHeading(el) {
+    if (!el) return false;
+    const t = norm(el.textContent);
+    return t === 'sponsored result' || t === 'sponsored results';
+  }
+
+  function findAdBlockFromLabel(labelEl) {
+    let node = labelEl;
+    let depth = 0;
+
+    while (node && node.id !== 'search' && node !== document.body && depth < 8) {
+      // Only consider reasonably sized blocks with at least one link
+      if (node.matches && node.matches('div,section')) {
+        const rect = node.getBoundingClientRect();
+        const links = node.querySelectorAll('a[href]');
+        if (rect.height > 60 && links.length >= 1) {
+          return node;
+        }
+      }
+      node = node.parentElement;
+      depth++;
+    }
+    return null;
+  }
+
+  function removeSponsoredBlocks(root) {
+    const searchRoot = document.querySelector('#search') || root || document;
+    if (!searchRoot || !searchRoot.querySelectorAll) return;
+
+    const labels = searchRoot.querySelectorAll('h1, h2, h3, div, span');
+    labels.forEach(el => {
+      if (!isSponsoredHeading(el)) return;
+      const block = findAdBlockFromLabel(el);
+      if (block && block.parentElement) {
+        block.parentElement.removeChild(block);
+      }
+    });
+  }
+
+  function runAll() {
+    injectCss();
+    removeSponsoredBlocks(document);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runAll, { once: true });
+  } else {
+    runAll();
+  }
+
+  // Watch for dynamically injected sponsored blocks
+  const observer = new MutationObserver(muts => {
+    for (const m of muts) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+        removeSponsoredBlocks(node);
+      }
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  });
 })();
