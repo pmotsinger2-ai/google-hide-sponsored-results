@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Search: Hide Sponsored Results (Safe CSS Version)
 // @namespace    https://github.com/GooglyBlox
-// @version      2.4
+// @version      2.5
 // @description  Hide Google Search ads/sponsored results without breaking the page
 // @author       GooglyBlox
 // @license      MIT
@@ -35,44 +35,40 @@
     style.setAttribute(STYLE_ATTR, '1');
 
     style.textContent = `
-      /* Scope EVERYTHING to the results area so we don't touch the search box */
-      #search {
+      /* Classic top and bottom ad blocks inside the results area */
+      #search #tads,
+      #search #tadsb,
+      #search #taw {
+        display: none !important;
+      }
 
-        /* Classic top and bottom ad blocks */
-        #tads,
-        #tadsb,
-        #taw {
-          display: none !important;
-        }
+      /* Common desktop commercial ad units (top/right/PLAs) */
+      #search .commercial-unit-desktop-top,
+      #search .commercial-unit-desktop-rhs,
+      #search .pla-unit,
+      #search .pla-unit-container,
+      #search .cu-container,
+      #search .ads-ad {
+        display: none !important;
+      }
 
-        /* Common desktop commercial ad units (top/right/PLAs) */
-        .commercial-unit-desktop-top,
-        .commercial-unit-desktop-rhs,
-        .pla-unit,
-        .pla-unit-container,
-        .cu-container,
-        .ads-ad {
-          display: none !important;
-        }
-
-        /* Elements explicitly marked as ads/sponsored */
-        [data-text-ad],
-        [data-text-ad="1"],
-        [data-ad],
-        [data-ad-type],
-        [data-ad-client],
-        [data-ad-index],
-        [data-ad-position],
-        [aria-label="Ads"],
-        [aria-label="Sponsored"],
-        [aria-label="Sponsored results"],
-        [aria-label="Ads results"],
-        [aria-label^="Ads "],
-        [aria-label^="Sponsored "],
-        [role="region"][aria-label^="Ads"],
-        [role="region"][aria-label^="Sponsored"] {
-          display: none !important;
-        }
+      /* Elements explicitly marked as ads/sponsored within the results area */
+      #search [data-text-ad],
+      #search [data-text-ad="1"],
+      #search [data-ad],
+      #search [data-ad-type],
+      #search [data-ad-client],
+      #search [data-ad-index],
+      #search [data-ad-position],
+      #search [aria-label="Ads"],
+      #search [aria-label="Sponsored"],
+      #search [aria-label="Sponsored results"],
+      #search [aria-label="Ads results"],
+      #search [aria-label^="Ads "],
+      #search [aria-label^="Sponsored "],
+      #search [role="region"][aria-label^="Ads"],
+      #search [role="region"][aria-label^="Sponsored"] {
+        display: none !important;
       }
     `;
 
@@ -84,4 +80,7 @@
   } else {
     injectCss();
   }
+
+  // Optional: log so you can see it's actually running
+  try { console.debug('[hide-sponsored-results] CSS injected'); } catch (_) {}
 })();
